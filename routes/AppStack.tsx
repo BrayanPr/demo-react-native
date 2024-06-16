@@ -34,7 +34,7 @@ export const AppStack = () => {
                 name="Home"
                 component={HomePage}
             />
-              <Stack.Screen
+                <Stack.Screen
                 name="Camera"
                 component={CameraPage}
             />

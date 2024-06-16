@@ -1,18 +1,24 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Button } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Button, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import ModalCentered from '../components/ModalCentered';
 import { Image } from 'expo-image'
+import * as MediaLibrary from 'expo-media-library';
+import { Cloudinary } from '@cloudinary/url-gen';
+import { UploadApiOptions, upload } from 'cloudinary-react-native';
 
 const CameraPage = () => {
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+    const [permissionMedia, requestMediaPermission] = MediaLibrary.usePermissions();
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    const [currentPic, setCurrentPic] = useState(undefined as any);
+    const [currentPicSavedLocally, setCurrentPicSavedLocally] = useState(false);
+    const [currentPicSavedOnline, SetCurrentPicSavedOnline] = useState(false);
+    const [currentPic, setCurrentPic] = useState(undefined as any);    
     const [facing, setFacing] = useState('back' as any);
     const cameraRef = useRef(null as any);
 
-    if (!cameraPermission) {
+    if (!cameraPermission || !permissionMedia) {
         // Camera permissions are still loading.
         return <View />;
     }
@@ -34,15 +40,16 @@ const CameraPage = () => {
     function takePic() {
         if (cameraRef.current) {
             setLoading(true)
-
             cameraRef.current.takePictureAsync({
                 skipProcessing: true,
             }).then(async (photoData: any) => {
                 try {
                     setCurrentPic(photoData)
+                    setCurrentPicSavedLocally(false)
+                    SetCurrentPicSavedOnline(false)
                     setShowModal(true)
                 } catch (error) {
-                    console.error('Error saving picture:', error);
+                    console.error('Error saving picture locally:', error);
                 }
             }).catch((error: any) => {
                 console.error('Error taking picture:', error);
@@ -50,12 +57,38 @@ const CameraPage = () => {
         }
     }
 
+    async function uploadImageToLocalStorage() {
+        if(currentPicSavedLocally){
+            Alert.alert("This pic has been already saved locally")
+            return
+        }
+
+        if (!permissionMedia?.granted) {
+            Alert.alert('We need your pemission!', 'You have not give enougth permissions for this action', [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                { text: 'Allow usage of local storage', onPress:() => { requestMediaPermission() }}
+            ]);
+        }
+
+        await MediaLibrary.saveToLibraryAsync(currentPic.uri)
+        .then(()=>{
+            setCurrentPicSavedLocally(true)
+            Alert.alert('Picutre saved locally succesfully!')
+        })
+        .catch(console.log)
+    }
+
+   
     return (
         <View style={styles.container}>
             <CameraView style={styles.camera} facing={facing} ref={cameraRef} />
             <ModalCentered
                 visible={showModal}
                 onRequestClose={() => { setShowModal(false) }}
+                onSaveLocally={uploadImageToLocalStorage}
             >
                 {currentPic && <Image
                     style={styles.image}
@@ -71,7 +104,7 @@ const CameraPage = () => {
                 <TouchableOpacity style={styles.button} onPress={takePic} />
 
                 <TouchableOpacity style={styles.button} onPress={toggleCameraFacing} >
-                    <Text style={styles.buttonText} >Flip Camera</Text>
+                    <Text style={styles.buttonText}>Flip Camera</Text>
                 </TouchableOpacity>
 
             </View>
