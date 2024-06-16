@@ -6,6 +6,7 @@ import { Image } from 'expo-image'
 import * as MediaLibrary from 'expo-media-library';
 import { Cloudinary } from '@cloudinary/url-gen';
 import { UploadApiOptions, upload } from 'cloudinary-react-native';
+import * as cloud from '../secrets'
 
 const CameraPage = () => {
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -81,7 +82,35 @@ const CameraPage = () => {
         .catch(console.log)
     }
 
-   
+    async function uploadImageToLocalCloudinary() {
+        if(currentPicSavedOnline){
+            Alert.alert("This pic has been already saved online")
+            return
+        }
+        
+        const cld = new Cloudinary({
+            cloud,
+            url: {
+                secure: true,
+            }
+        });
+        
+        const options: UploadApiOptions = {
+            upload_preset: 'ml_default',
+            public_id:'demo',
+        }
+
+        await upload(cld, {
+            file: currentPic.uri, options: options, callback: (error: any, response: any) => {
+                if(response){
+                    Alert.alert("This pic has been already saved online")
+                    Alert.alert("Picutre saved online succesfully!")
+                    SetCurrentPicSavedOnline(true)
+                }
+                console.log(response ?? error)
+            }
+    })}
+
     return (
         <View style={styles.container}>
             <CameraView style={styles.camera} facing={facing} ref={cameraRef} />
@@ -89,6 +118,7 @@ const CameraPage = () => {
                 visible={showModal}
                 onRequestClose={() => { setShowModal(false) }}
                 onSaveLocally={uploadImageToLocalStorage}
+                onUpload={uploadImageToLocalCloudinary}
             >
                 {currentPic && <Image
                     style={styles.image}
