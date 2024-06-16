@@ -1,9 +1,17 @@
-import { Text, StyleSheet, ScrollView } from 'react-native';
-function HomePage() {
+import { Text, StyleSheet, ScrollView, Button } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+type Props = NativeStackScreenProps<any>;
+
+function HomePage ({ navigation }:Props) {
+
+  // router.
 
   return (
     <ScrollView contentContainerStyle={styles.mainContainer}>
-      <Text>Hello! Im authenticated!</Text>
+      <Text>Hello!</Text>
+
+      <Button title='Take some pics!' onPress={() => navigation.navigate('Camera')}></Button>
     </ScrollView>
   );
 }
