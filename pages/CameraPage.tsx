@@ -1,21 +1,21 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Button, Alert } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { cloudName } from '../secrets'
 import ModalCentered from '../components/ModalCentered';
 import { Image } from 'expo-image'
 import * as MediaLibrary from 'expo-media-library';
-import { Cloudinary } from '@cloudinary/url-gen';
-import { UploadApiOptions, upload } from 'cloudinary-react-native';
-import * as cloud from '../secrets'
+import * as ImagePicker from 'expo-image-picker';
 
 const CameraPage = () => {
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
     const [permissionMedia, requestMediaPermission] = MediaLibrary.usePermissions();
+    const [permissionMediaPicker, requestMediaPickerPermission] = ImagePicker.useMediaLibraryPermissions()
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [currentPicSavedLocally, setCurrentPicSavedLocally] = useState(false);
-    const [currentPicSavedOnline, SetCurrentPicSavedOnline] = useState(false);
-    const [currentPic, setCurrentPic] = useState(undefined as any);    
+    const [currentPicSavedOnline, setCurrentPicSavedOnline] = useState(false);
+    const [currentPic, setCurrentPic] = useState(undefined as any);
     const [facing, setFacing] = useState('back' as any);
     const cameraRef = useRef(null as any);
 
@@ -43,11 +43,12 @@ const CameraPage = () => {
             setLoading(true)
             cameraRef.current.takePictureAsync({
                 skipProcessing: true,
+                base64: true
             }).then(async (photoData: any) => {
                 try {
                     setCurrentPic(photoData)
                     setCurrentPicSavedLocally(false)
-                    SetCurrentPicSavedOnline(false)
+                    setCurrentPicSavedOnline(false)
                     setShowModal(true)
                 } catch (error) {
                     console.error('Error saving picture locally:', error);
@@ -58,8 +59,39 @@ const CameraPage = () => {
         }
     }
 
+    async function openImagePicker() {
+
+        if (!permissionMediaPicker?.granted) {
+            Alert.alert('We need your pemission!', 'You have not give enougth permissions for this action', [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                { text: 'Allow usage of local storage', onPress: () => { requestMediaPickerPermission() } }
+            ]);
+        }
+
+        let result = await ImagePicker.launchImageLibraryAsync({
+            allowsEditing: true,
+            quality: 1,
+            base64: true
+        });
+
+        if (!result.canceled) {
+            console.log(result);
+            const image = result.assets[0]
+            setCurrentPic(image)
+
+            setCurrentPicSavedOnline(false)
+            setCurrentPicSavedLocally(false)
+            setShowModal(true)
+        } else {
+            alert('You did not select any image.');
+        }
+    }
+
     async function uploadImageToLocalStorage() {
-        if(currentPicSavedLocally){
+        if (currentPicSavedLocally) {
             Alert.alert("This pic has been already saved locally")
             return
         }
@@ -70,46 +102,47 @@ const CameraPage = () => {
                     text: 'Cancel',
                     style: 'cancel',
                 },
-                { text: 'Allow usage of local storage', onPress:() => { requestMediaPermission() }}
+                { text: 'Allow usage of local storage', onPress: () => { requestMediaPermission() } }
             ]);
         }
 
         await MediaLibrary.saveToLibraryAsync(currentPic.uri)
-        .then(()=>{
-            setCurrentPicSavedLocally(true)
-            Alert.alert('Picutre saved locally succesfully!')
-        })
-        .catch(console.log)
+            .then(() => {
+                setCurrentPicSavedLocally(true)
+                Alert.alert('Picutre saved locally succesfully!')
+            })
+            .catch(console.log)
     }
 
     async function uploadImageToLocalCloudinary() {
-        if(currentPicSavedOnline){
+        if (currentPicSavedOnline) {
             Alert.alert("This pic has been already saved online")
             return
         }
-        
-        const cld = new Cloudinary({
-            cloud,
-            url: {
-                secure: true,
-            }
-        });
-        
-        const options: UploadApiOptions = {
-            upload_preset: 'ml_default',
-            public_id:'demo',
-        }
 
-        await upload(cld, {
-            file: currentPic.uri, options: options, callback: (error: any, response: any) => {
-                if(response){
-                    Alert.alert("This pic has been already saved online")
-                    Alert.alert("Picutre saved online succesfully!")
-                    SetCurrentPicSavedOnline(true)
-                }
-                console.log(response ?? error)
-            }
-    })}
+        await uploadImage(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`).then(async (res) => {
+            await res
+            Alert.alert("Picutrse saved online succesfully!")
+            setCurrentPicSavedOnline(true)
+            console.log(res)
+        })
+
+    }
+
+    const uploadImage = async (url: string) => {
+        const base64 = "data:image/jpeg;base64," + currentPic.base64
+        let formData = new FormData();
+        formData.append('file', base64 as any, "file");
+        formData.append('upload_preset', 'ml_default');
+        formData.append('public_id', 'DEMOO');
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+        return response.json()
+    };
+
 
     return (
         <View style={styles.container}>
@@ -127,7 +160,7 @@ const CameraPage = () => {
                 />}
             </ModalCentered>
             <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.button} >
+                <TouchableOpacity style={styles.button} onPress={openImagePicker}>
                     <Text style={styles.buttonText}>Open Gallery</Text>
                 </TouchableOpacity>
 
