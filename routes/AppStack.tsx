@@ -4,6 +4,8 @@ import { Alert, Button } from 'react-native';
 import HomePage from '../pages/HomePage';
 import useAuth from '../hooks/useAuth';
 import CameraPage from '../pages/CameraPage';
+import ChatPage from '../pages/ChatPage';
+import MapPage from '../pages/MapPage';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,7 +18,7 @@ export const AppStack = () => {
                 text: 'Cancel',
                 style: 'cancel',
             },
-            { text: 'Log out', onPress:signOut },
+            { text: 'Log out', onPress: signOut },
         ]);
     };
 
@@ -34,9 +36,17 @@ export const AppStack = () => {
                 name="Home"
                 component={HomePage}
             />
-                <Stack.Screen
+            <Stack.Screen
                 name="Camera"
                 component={CameraPage}
+            />
+            <Stack.Screen
+                name="Chat"
+                component={ChatPage}
+            />
+            <Stack.Screen
+                name="Map"
+                component={MapPage}
             />
         </Stack.Navigator>
     );

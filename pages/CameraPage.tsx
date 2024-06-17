@@ -6,6 +6,7 @@ import ModalCentered from '../components/ModalCentered';
 import { Image } from 'expo-image'
 import * as MediaLibrary from 'expo-media-library';
 import * as ImagePicker from 'expo-image-picker';
+import * as Crypto from "expo-crypto"
 
 const CameraPage = () => {
     const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -134,7 +135,7 @@ const CameraPage = () => {
         let formData = new FormData();
         formData.append('file', base64 as any, "file");
         formData.append('upload_preset', 'ml_default');
-        const id =  crypto.randomUUID()
+        const id =  Crypto.randomUUID()
         formData.append('public_id', id);
 
         const response = await fetch(url, {

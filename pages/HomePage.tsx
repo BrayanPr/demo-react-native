@@ -12,6 +12,9 @@ function HomePage ({ navigation }:Props) {
       <Text>Hello!</Text>
 
       <Button title='Take some pics!' onPress={() => navigation.navigate('Camera')}></Button>
+      <Button title='Sendo some msgs!' onPress={() => navigation.navigate('Chat')}></Button>
+      <Button title='Use some maps!' onPress={() => navigation.navigate('Map')}></Button>
+
     </ScrollView>
   );
 }
