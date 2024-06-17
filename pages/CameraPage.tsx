@@ -134,7 +134,8 @@ const CameraPage = () => {
         let formData = new FormData();
         formData.append('file', base64 as any, "file");
         formData.append('upload_preset', 'ml_default');
-        formData.append('public_id', 'DEMOO');
+        const id =  crypto.randomUUID()
+        formData.append('public_id', id);
 
         const response = await fetch(url, {
             method: 'POST',

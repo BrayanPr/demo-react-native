@@ -18,7 +18,8 @@
     "expo-image-picker": "~15.0.5",
     "expo-media-library": "~16.0.3",
     "react": "18.2.0",
-    "react-native": "0.74.2"
+    "react-native": "0.74.2",
+    "expo-crypto": "~13.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
