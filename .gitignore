@@ -3,8 +3,6 @@
 # dependencies
 node_modules/
 
-secrets.ts
-
 # Expo
 .expo/
 dist/
@@ -12,7 +10,7 @@ web-build/
 
 # Native
 *.orig.*
-*.jks
+*.jk
 *.p8
 *.p12
 *.key
