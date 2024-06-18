@@ -1,7 +1,7 @@
-import { Accuracy, LocationObject, getCurrentPositionAsync, requestForegroundPermissionsAsync, watchPositionAsync } from 'expo-location';
+import {  LocationObject, getCurrentPositionAsync, requestForegroundPermissionsAsync } from 'expo-location';
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Socket, io } from 'socket.io-client';
 import * as Crypto from "expo-crypto"
 const USER_ID =  Crypto.randomUUID()
@@ -87,6 +87,7 @@ function MapPage() {
     return (
         <View style={styles.container}>
             <MapView
+                provider={PROVIDER_GOOGLE}
                 style={styles.map}
                 initialRegion={{
                     latitude: location.coords.latitude,
